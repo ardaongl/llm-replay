@@ -197,6 +197,15 @@ func TestCaptureCommandRejectsNonLoopbackListenAddress(t *testing.T) {
 	}
 }
 
+func TestUICommandRejectsNonLoopbackHost(t *testing.T) {
+	root := NewRootCommand(config.Default(), "test", &bytes.Buffer{}, &bytes.Buffer{})
+	root.SetArgs([]string{"ui", "unused-run", "--host", "0.0.0.0", "--no-browser"})
+	err := root.Execute()
+	if err == nil || !strings.Contains(err.Error(), "not loopback") {
+		t.Fatalf("UI error = %v, want loopback validation", err)
+	}
+}
+
 func TestSelectEvaluators(t *testing.T) {
 	selected, err := selectEvaluators([]string{"json", "schema", "match", "json"})
 	if err != nil || len(selected) != 3 {

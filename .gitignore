@@ -3,6 +3,7 @@
 /datasets/
 /dist/
 /.cache/
+/*.html
 *.exe
 *.test
 *.out

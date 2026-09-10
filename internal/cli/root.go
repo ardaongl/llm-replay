@@ -29,6 +29,8 @@ func NewRootCommand(cfg *config.Config, version string, stdout, stderr io.Writer
 		newInspectCommand(),
 		newReplayCommand(cfg),
 		newCompareCommand(),
+		newReportCommand(),
+		newUICommand(),
 	)
 
 	return cmd

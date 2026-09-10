@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Local LLM replay comparison report">
+  {{if .Standalone}}<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">{{end}}
+  <title>LLM Replay Report</title>
+  {{if .Standalone}}<style>{{.CSS}}</style>{{else}}<link rel="stylesheet" href="/assets/app.css">{{end}}
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <span class="brand-mark" aria-hidden="true">LR</span>
+      <div>
+        <p class="eyebrow">LOCAL BENCHMARK</p>
+        <h1>LLM Replay</h1>
+      </div>
+    </div>
+    <div class="dataset-meta">
+      <span id="mode-badge" class="mode-badge">Loading</span>
+      <span id="dataset-hash" class="mono muted"></span>
+    </div>
+  </header>
+
+  <main>
+    <div id="status" class="status" role="status" aria-live="polite">Loading report data…</div>
+    <p class="privacy-note">This report contains local prompts and model outputs. Treat it as confidential data.</p>
+
+    <section aria-labelledby="overview-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">DECISION SURFACE</p>
+          <h2 id="overview-title">Model overview</h2>
+        </div>
+        <p id="record-count" class="muted"></p>
+      </div>
+      <div id="leader-strip" class="leader-strip" aria-label="Metric leaders"></div>
+      <div id="model-cards" class="model-grid"></div>
+    </section>
+
+    <section class="chart-panel" aria-labelledby="latency-title">
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">PERFORMANCE DISTRIBUTION</p>
+          <h2 id="latency-title">Request latency</h2>
+        </div>
+        <p class="muted">Successful requests · milliseconds</p>
+      </div>
+      <div id="chart-legend" class="chart-legend"></div>
+      <div class="chart-wrap">
+        <svg id="latency-chart" viewBox="0 0 960 260" role="img" aria-label="Latency histogram by model"></svg>
+      </div>
+    </section>
+
+    <section aria-labelledby="explorer-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EVIDENCE</p>
+          <h2 id="explorer-title">Request explorer</h2>
+        </div>
+        <p id="result-total" class="muted"></p>
+      </div>
+
+      <form id="filters" class="filter-bar" autocomplete="off">
+        <label class="search-field">
+          <span>Search</span>
+          <input id="filter-search" type="search" placeholder="Record ID or prompt text">
+        </label>
+        <label>
+          <span>Status</span>
+          <select id="filter-status">
+            <option value="">All statuses</option>
+            <option value="success">Success</option>
+            <option value="error">Error</option>
+            <option value="timeout">Timeout</option>
+          </select>
+        </label>
+        <label>
+          <span>Quality</span>
+          <select id="filter-evaluator">
+            <option value="">All evaluations</option>
+            <option value="json_valid">Invalid JSON</option>
+            <option value="schema_adherence">Schema failed</option>
+            <option value="exact_match">Exact match failed</option>
+          </select>
+        </label>
+        <label>
+          <span>Model</span>
+          <select id="filter-model"><option value="">All models</option></select>
+        </label>
+        <label>
+          <span>Min latency</span>
+          <select id="filter-latency">
+            <option value="0">Any latency</option>
+            <option value="500">≥ 500 ms</option>
+            <option value="1000">≥ 1 s</option>
+            <option value="2000">≥ 2 s</option>
+          </select>
+        </label>
+      </form>
+
+      <div class="table-shell">
+        <table>
+          <thead><tr><th>Record</th><th>Models</th><th>Status</th><th>Latency</th><th>Tokens</th><th>Quality</th></tr></thead>
+          <tbody id="results-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state" hidden>No records match these filters.</div>
+      </div>
+      <button id="load-more" class="secondary-button" type="button" hidden>Load more</button>
+    </section>
+  </main>
+
+  <dialog id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-header">
+      <div>
+        <p class="eyebrow">RECORD DETAIL</p>
+        <h2 id="detail-title"></h2>
+      </div>
+      <button id="close-detail" class="icon-button" type="button" aria-label="Close detail">×</button>
+    </div>
+    <div class="detail-controls">
+      <label><span>Candidate model</span><select id="detail-model"></select></label>
+      <span id="detail-status" class="status-pill"></span>
+    </div>
+    <section class="prompt-panel" aria-labelledby="prompt-title">
+      <h3 id="prompt-title">Input messages</h3>
+      <div id="prompt-content"></div>
+    </section>
+    <div class="diff-grid">
+      <section><h3>Baseline</h3><pre id="baseline-content"></pre></section>
+      <section><h3>Candidate</h3><pre id="candidate-content"></pre></section>
+    </div>
+    <section class="diff-panel" aria-labelledby="diff-title">
+      <div class="section-heading compact"><h3 id="diff-title">Word diff</h3><span id="diff-note" class="muted"></span></div>
+      <div id="diff-content" class="diff-content"></div>
+    </section>
+    <section aria-labelledby="evaluation-title">
+      <h3 id="evaluation-title">Evaluations</h3>
+      <div id="evaluation-content" class="evaluation-list"></div>
+    </section>
+  </dialog>
+
+  {{if .Standalone}}<script id="replay-data" type="application/json">{{.Data}}</script><script>{{.JS}}</script>{{else}}<script src="/assets/app.js" defer></script>{{end}}
+</body>
+</html>

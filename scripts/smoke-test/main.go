@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,6 +20,8 @@ func main() {
 }
 
 func run() error {
+	keep := flag.Bool("keep", false, "keep generated run and report artifacts for manual inspection")
+	flag.Parse()
 	workspace, err := os.Getwd()
 	if err != nil {
 		return err
@@ -30,7 +33,9 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(temporary)
+	if !*keep {
+		defer os.RemoveAll(temporary)
+	}
 
 	binary := filepath.Join(temporary, "llm-replay")
 	if runtime.GOOS == "windows" {
@@ -80,6 +85,26 @@ func run() error {
 	if err != nil || len(runs) != 2 {
 		return fmt.Errorf("expected two run artifact directories, got %d: %w", len(runs), err)
 	}
-	fmt.Println("Smoke test passed: built the CLI and replayed 120 records across OpenAI and Anthropic mocks.")
+	reportPath := filepath.Join(temporary, "comparison.html")
+	reportArgs := append([]string{"report"}, runs...)
+	reportArgs = append(reportArgs, "--output", reportPath)
+	reportCommand := exec.Command(binary, reportArgs...)
+	reportCommand.Dir = workspace
+	if output, err := reportCommand.CombinedOutput(); err != nil {
+		return fmt.Errorf("generate HTML report: %w\n%s", err, output)
+	}
+	reportData, err := os.ReadFile(reportPath)
+	if err != nil {
+		return fmt.Errorf("read HTML report: %w", err)
+	}
+	for _, expected := range []string{"replay-data", "openai/smoke-model", "anthropic/smoke-model"} {
+		if !strings.Contains(string(reportData), expected) {
+			return fmt.Errorf("HTML report is missing %q", expected)
+		}
+	}
+	fmt.Println("Smoke test passed: replayed 120 records across two provider mocks and generated an offline HTML report.")
+	if *keep {
+		fmt.Printf("Smoke artifacts: %s\n", temporary)
+	}
 	return nil
 }
