@@ -1,0 +1,15 @@
+/bin/
+/runs/
+/datasets/
+/dist/
+/.cache/
+*.exe
+*.test
+*.out
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+.vscode/

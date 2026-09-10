@@ -1,0 +1,14 @@
+version: "2026-09-01"
+models:
+  openai/gpt-4o:
+    input_per_million: 5.00
+    output_per_million: 15.00
+  openai/gpt-4o-mini:
+    input_per_million: 0.15
+    output_per_million: 0.60
+  anthropic/claude-3-5-sonnet:
+    input_per_million: 3.00
+    output_per_million: 15.00
+  anthropic/claude-3-5-haiku:
+    input_per_million: 0.25
+    output_per_million: 1.25
