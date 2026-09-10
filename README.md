@@ -138,6 +138,23 @@ Compare previously completed runs without making network calls:
 ./bin/llm-replay compare runs/run_a runs/run_b
 ```
 
+Export the same runs as one self-contained report that opens without a server
+or internet connection:
+
+```bash
+./bin/llm-replay report runs/run_a runs/run_b --output comparison.html
+```
+
+For large result sets, start the read-only local explorer. It binds only to
+your computer and opens the browser automatically:
+
+```bash
+./bin/llm-replay ui runs/run_a runs/run_b
+```
+
+Use `--no-browser` to print the local URL without opening it. Both commands
+require runs from the same dataset and match their records by `record_id`.
+
 ## Privacy by default
 
 - The capture server refuses non-loopback bind addresses.
@@ -171,9 +188,10 @@ publish checksummed Linux, macOS, and Windows archives through GoReleaser.
 - [x] Capture, inspect, concurrent replay, evaluation, metrics, and comparison
 - [x] OpenAI and Anthropic cross-provider benchmarks
 - [x] Reproducible demo, CI, smoke testing, and multi-platform releases
+- [x] Offline HTML reports and a secure localhost run explorer
 - [ ] Streaming capture and replay
 - [ ] Tool/function-call evaluation
-- [ ] Additional provider adapters and HTML reports
+- [ ] Additional provider adapters
 
 The detailed design and future plans live in [docs](docs/index.md). Contributions
 are welcome; read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull

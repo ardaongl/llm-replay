@@ -89,6 +89,7 @@ Geliştirme sürecinin aşama aşama, kontrollü ve test odaklı ilerlemesi içi
 | **Phase 7** | **[Phase 7 — Capture Proxy & Sanitization](file:///c:/Users/ardao/Desktop/llm-replay/docs/phases/phase-07-capture-proxy.md)** | Reverse HTTP proxy, OpenAI-uyumlu capture, secret redaction, JSONL append. |
 | **Phase 8** | **[Phase 8 — Anthropic Provider Adapter](file:///c:/Users/ardao/Desktop/llm-replay/docs/phases/phase-08-provider-anthropic.md)** | Anthropic Messages API adaptörü, format çevrimi, cross-provider karşılaştırma testi. |
 | **Phase 9** | **[Phase 9 — Polish, Demo & Release](file:///c:/Users/ardao/Desktop/llm-replay/docs/phases/phase-09-polish-and-release.md)** | README vitrini, Customer Support fixture dataset, benchmark demosu, CI release pipeline. |
+| **Phase 10** | **[Phase 10 — Secure Web Reports & Run Comparison](file:///c:/Users/ardao/Desktop/llm-replay/docs/phases/phase-10-web-report-ui.md)** | Çoklu-run artifact katmanı, önce bağımsız HTML raporu, ardından loopback-only yerel UI, güvenli diff ve ölçek sınırları. |
 
 ---
 
