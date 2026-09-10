@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ardao/llm-replay/examples/schemas/support_schema.json",
+  "title": "Support ticket classification",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "account_access",
+        "billing",
+        "cancellation",
+        "feature_request",
+        "refund",
+        "subscription",
+        "technical_support"
+      ]
+    },
+    "urgency": {
+      "type": "string",
+      "enum": ["low", "medium", "high"]
+    }
+  },
+  "required": ["category", "urgency"],
+  "additionalProperties": false
+}
