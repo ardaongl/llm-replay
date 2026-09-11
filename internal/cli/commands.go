@@ -12,8 +12,7 @@ import (
 	"github.com/ardao/llm-replay/internal/evaluation"
 	"github.com/ardao/llm-replay/internal/pricing"
 	"github.com/ardao/llm-replay/internal/provider"
-	"github.com/ardao/llm-replay/internal/provider/anthropic"
-	"github.com/ardao/llm-replay/internal/provider/openai"
+	"github.com/ardao/llm-replay/internal/providerfactory"
 	"github.com/ardao/llm-replay/internal/replay"
 	"github.com/ardao/llm-replay/internal/report"
 	"github.com/spf13/cobra"
@@ -152,24 +151,10 @@ type candidateReplayResult struct {
 }
 
 func newProviderAdapter(providerName, modelName string, globalConfig *config.Config, openAIBaseURL, anthropicBaseURL string, timeout time.Duration) (provider.Provider, error) {
-	switch providerName {
-	case "openai":
-		return openai.New(openai.Config{
-			APIKey:  globalConfig.OpenAIAPIKey,
-			Model:   modelName,
-			BaseURL: openAIBaseURL,
-			Timeout: timeout,
-		})
-	case "anthropic":
-		return anthropic.New(anthropic.Config{
-			APIKey:  globalConfig.AnthropicAPIKey,
-			Model:   modelName,
-			BaseURL: anthropicBaseURL,
-			Timeout: timeout,
-		})
-	default:
-		return nil, fmt.Errorf("provider %q is not supported; use openai or anthropic", providerName)
-	}
+	return providerfactory.New(providerName, modelName, providerfactory.Config{
+		OpenAIAPIKey: globalConfig.OpenAIAPIKey, AnthropicAPIKey: globalConfig.AnthropicAPIKey,
+		OpenAIBaseURL: openAIBaseURL, AnthropicBaseURL: anthropicBaseURL, Timeout: timeout,
+	})
 }
 
 func runReplayCandidate(ctx context.Context, index int, spec replayCandidateSpec, datasetPath string, totalRecords int, replayConfig replay.Config) candidateReplayResult {

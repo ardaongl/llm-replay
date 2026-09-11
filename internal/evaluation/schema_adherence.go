@@ -25,17 +25,9 @@ func (e SchemaAdherence) Evaluate(ctx context.Context, record *domain.Record, ca
 	if candidate == nil {
 		return skipped(e.Name(), "candidate response is unavailable")
 	}
-	if err := rejectExternalReferences(record.Evaluation.Schema); err != nil {
-		return Result{Name: e.Name(), Error: err.Error()}
-	}
-
-	compiler := jsonschema.NewCompiler()
-	if err := compiler.AddResource("schema.json", record.Evaluation.Schema); err != nil {
-		return Result{Name: e.Name(), Error: fmt.Sprintf("load JSON schema: %v", err)}
-	}
-	schema, err := compiler.Compile("schema.json")
+	schema, err := CompileSchema(record.Evaluation.Schema)
 	if err != nil {
-		return Result{Name: e.Name(), Error: fmt.Sprintf("compile JSON schema: %v", err)}
+		return Result{Name: e.Name(), Error: err.Error()}
 	}
 	instance, err := jsonschema.UnmarshalJSON(strings.NewReader(candidate.Content))
 	if err != nil {
@@ -51,6 +43,22 @@ func (e SchemaAdherence) Evaluate(ctx context.Context, record *domain.Record, ca
 		}
 	}
 	return Result{Name: e.Name(), Passed: true, Score: 1}
+}
+
+// CompileSchema validates and compiles a local-only JSON Schema.
+func CompileSchema(value map[string]any) (*jsonschema.Schema, error) {
+	if err := rejectExternalReferences(value); err != nil {
+		return nil, err
+	}
+	compiler := jsonschema.NewCompiler()
+	if err := compiler.AddResource("schema.json", value); err != nil {
+		return nil, fmt.Errorf("load JSON schema: %v", err)
+	}
+	schema, err := compiler.Compile("schema.json")
+	if err != nil {
+		return nil, fmt.Errorf("compile JSON schema: %v", err)
+	}
+	return schema, nil
 }
 
 func rejectExternalReferences(value any) error {
