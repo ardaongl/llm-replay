@@ -155,6 +155,35 @@ your computer and opens the browser automatically:
 Use `--no-browser` to print the local URL without opening it. Both commands
 require runs from the same dataset and match their records by `record_id`.
 
+## Compare live in the Arena
+
+For a quick, one-prompt comparison, start the local Live Arena. The command
+opens a browser workspace where you select two server-allowlisted models, enter
+the prompt, and review both responses, latency, token use, estimated cost,
+evaluations, and a bounded text diff:
+
+```bash
+make arena
+```
+
+Set the API key for each provider you want to use before starting. With one
+provider key, you can compare two models from that provider; with both
+`OPENAI_API_KEY` and `ANTHROPIC_API_KEY`, you can compare across providers. The
+UI remains local, while each comparison sends the entered messages to the two
+selected providers and may incur provider charges. API keys are never sent to
+the browser.
+
+To make dataset capture available, explicitly choose an existing valid JSONL
+file at startup:
+
+```bash
+make arena ARENA_ARGS="--dataset datasets/captured.jsonl"
+```
+
+The browser cannot choose a file path or enter an arbitrary model ID. It can
+only select models from the embedded server allowlist and append a confirmed,
+successful server-side result to the pre-opened dataset.
+
 ## Privacy by default
 
 - The capture server refuses non-loopback bind addresses.
@@ -189,6 +218,7 @@ publish checksummed Linux, macOS, and Windows archives through GoReleaser.
 - [x] OpenAI and Anthropic cross-provider benchmarks
 - [x] Reproducible demo, CI, smoke testing, and multi-platform releases
 - [x] Offline HTML reports and a secure localhost run explorer
+- [x] Secure local Live Arena for two-model comparisons and opt-in capture
 - [ ] Streaming capture and replay
 - [ ] Tool/function-call evaluation
 - [ ] Additional provider adapters
