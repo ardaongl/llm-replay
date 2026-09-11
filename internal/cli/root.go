@@ -31,6 +31,7 @@ func NewRootCommand(cfg *config.Config, version string, stdout, stderr io.Writer
 		newCompareCommand(),
 		newReportCommand(),
 		newUICommand(),
+		newArenaCommand(cfg),
 	)
 
 	return cmd

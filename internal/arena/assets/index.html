@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="csrf-token" content="{{.CSRF}}">
+  <title>LLM Replay · Live Arena</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2308121f'/%3E%3Cpath d='M15 18h34M15 32h25M15 46h34' stroke='%234be3c1' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/app.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="LLM Replay Live Arena home">
+      <span class="brand-mark" aria-hidden="true">LR</span>
+      <span><strong>LLM REPLAY</strong><small>LIVE ARENA</small></span>
+    </a>
+    <span class="local-pill"><i></i> LOCAL SESSION</span>
+  </header>
+
+  <div class="privacy-note" role="note">
+    <strong>Data boundary:</strong> this control panel stays local, but your messages are sent to both configured model providers when you compare.
+  </div>
+
+  <main class="workspace">
+    <section class="composer panel" aria-labelledby="composer-title">
+      <div class="section-heading">
+        <div><span class="eyebrow">01 · INPUT</span><h1 id="composer-title">Compose once.</h1></div>
+        <span class="shortcut">⌘ / Ctrl + Enter</span>
+      </div>
+      <form id="arena-form">
+        <fieldset class="model-pickers">
+          <legend>Models to compare</legend>
+          <div>
+            <label for="model-left">Model A</label>
+            <select id="model-left" aria-describedby="model-selection-note"></select>
+          </div>
+          <div>
+            <label for="model-right">Model B</label>
+            <select id="model-right" aria-describedby="model-selection-note"></select>
+          </div>
+          <p id="model-selection-note">Only models from the server allowlist can be selected.</p>
+        </fieldset>
+
+        <label for="system-prompt">System message <span>optional</span></label>
+        <textarea id="system-prompt" rows="4" placeholder="You are a concise, helpful assistant."></textarea>
+
+        <label for="user-prompt">User message</label>
+        <textarea id="user-prompt" rows="9" required maxlength="65536" placeholder="Ask both models the same question…"></textarea>
+
+        <div class="parameter-grid">
+          <div>
+            <label for="temperature">Temperature</label>
+            <input id="temperature" type="number" min="0" max="2" step="0.1" value="0.2">
+          </div>
+          <div>
+            <label for="max-tokens">Max tokens</label>
+            <input id="max-tokens" type="number" min="1" max="8192" step="1" value="1024">
+          </div>
+        </div>
+
+        <details class="schema-box">
+          <summary>JSON Schema <span>optional evaluator</span></summary>
+          <label class="sr-only" for="json-schema">JSON Schema</label>
+          <textarea id="json-schema" rows="7" spellcheck="false" placeholder='{"type":"object","properties":{"answer":{"type":"string"}},"required":["answer"]}'></textarea>
+        </details>
+
+        <div id="form-error" class="inline-error" role="alert" hidden></div>
+        <button id="compare-button" class="primary-button" type="submit">
+          <span>Compare both models</span><span aria-hidden="true">↗</span>
+        </button>
+        <p class="button-note">One request is sent to each allowlisted model. Provider charges may apply.</p>
+      </form>
+    </section>
+
+    <section class="results" aria-labelledby="results-title">
+      <div class="section-heading results-heading">
+        <div><span class="eyebrow">02 · OUTPUT</span><h2 id="results-title">Side-by-side signal</h2></div>
+        <span id="run-status" class="run-status" aria-live="polite">Ready</span>
+      </div>
+      <div id="model-grid" class="model-grid" aria-live="polite"></div>
+
+      <section id="comparison-summary" class="comparison-summary panel" hidden>
+        <div><span class="eyebrow">03 · READOUT</span><h2>Comparison</h2></div>
+        <div id="summary-metrics" class="summary-metrics"></div>
+        <details>
+          <summary>Inspect text diff</summary>
+          <div id="diff-output" class="diff-output"></div>
+        </details>
+      </section>
+
+      <section id="save-panel" class="save-panel panel" hidden>
+        <div>
+          <span class="eyebrow">04 · CAPTURE</span>
+          <h2>Keep the useful result</h2>
+          <p>Append one successful response to the dataset selected when Arena started.</p>
+        </div>
+        <div class="save-controls">
+          <label for="baseline-model">Baseline response</label>
+          <select id="baseline-model"></select>
+          <label class="check"><input id="use-expected" type="checkbox"> Use response as expected output</label>
+          <label class="check"><input id="include-schema" type="checkbox"> Include JSON Schema</label>
+          <button id="review-save" class="secondary-button" type="button">Review save</button>
+          <p id="save-status" class="save-status" aria-live="polite"></p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="save-dialog">
+    <form method="dialog">
+      <span class="eyebrow">CONFIRM DATASET WRITE</span>
+      <h2>Save this baseline?</h2>
+      <p id="save-summary"></p>
+      <div class="dialog-actions">
+        <button value="cancel" class="ghost-button">Cancel</button>
+        <button id="confirm-save" value="default" class="primary-button">Save record</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="model-template">
+    <article class="model-card panel">
+      <div class="signal-rail"></div>
+      <header>
+        <div><span class="provider-name"></span><h3 class="model-name"></h3></div>
+        <span class="availability"></span>
+      </header>
+      <div class="metric-strip">
+        <div><span>Latency</span><strong data-metric="latency">—</strong></div>
+        <div><span>Tokens</span><strong data-metric="tokens">—</strong></div>
+        <div><span title="Estimate may exclude caching, batch pricing, and private discounts.">Est. cost</span><strong data-metric="cost">—</strong></div>
+      </div>
+      <pre class="response-copy">Awaiting a prompt.</pre>
+      <div class="evaluation-list"></div>
+    </article>
+  </template>
+</body>
+</html>

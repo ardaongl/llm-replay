@@ -7,10 +7,14 @@ BINARY := bin/llm-replay.exe
 RACE_FLAG :=
 endif
 
-.PHONY: build test lint fmt examples smoke snapshot clean
+.PHONY: build arena test lint fmt examples smoke snapshot clean
 
 build:
 	$(GO) build -trimpath -ldflags "-s -w" -o $(BINARY) ./cmd/llm-replay
+
+ARENA_ARGS ?=
+arena: build
+	$(BINARY) arena $(ARENA_ARGS)
 
 test:
 	$(GO) test -v $(RACE_FLAG) ./...

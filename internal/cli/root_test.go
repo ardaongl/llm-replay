@@ -37,3 +37,31 @@ func TestRootCommandVersion(t *testing.T) {
 		t.Fatalf("unexpected version output: %q", output.String())
 	}
 }
+
+func TestArenaCommandUsesWebModelSelection(t *testing.T) {
+	var output bytes.Buffer
+	cmd := NewRootCommand(config.Default(), "test", &output, &output)
+	arenaCommand, _, err := cmd.Find([]string{"arena"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if arenaCommand.Flags().Lookup("model") != nil {
+		t.Fatal("arena still exposes CLI model selection")
+	}
+}
+
+func TestArenaCatalogContainsDistinctSupportedModels(t *testing.T) {
+	seen := make(map[string]struct{}, len(defaultArenaModels))
+	providers := make(map[string]bool)
+	for _, model := range defaultArenaModels {
+		id := model.provider + "/" + model.model
+		if _, duplicate := seen[id]; duplicate {
+			t.Fatalf("duplicate arena catalog model: %s", id)
+		}
+		seen[id] = struct{}{}
+		providers[model.provider] = true
+	}
+	if len(defaultArenaModels) < 2 || !providers["openai"] || !providers["anthropic"] {
+		t.Fatalf("incomplete arena catalog: %#v", defaultArenaModels)
+	}
+}
